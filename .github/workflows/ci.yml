@@ -5,48 +5,26 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
-
+  
 permissions: write-all
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: iterative/setup-cml@v2
-
       - name: Install Packages
         run: make install
-
       - name: Format
         run: make format
-
       - name: Train
         run: make train
-
       - name: Evaluation
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: make eval
-
-      - name: Upload results (artifact)
-        uses: actions/upload-artifact@v3
-        with:
-          name: model-results
-          path: report.md
-
-      - name: Send email with results
-        if: success() # only send if workflow passes
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USER }}
-          password: ${{ secrets.EMAIL_PASS }}
-          subject: "✅ Model Training Completed"
-          to: danyal2075@gmail.com
-          from: GitHub Actions <${{ secrets.EMAIL_USER }}>
-          body: |
-            Training and evaluation finished successfully 🎉
-            See attached results for details.
-          attachments: report.md
+      - name: Update Branch
+        env:
+          NAME: ${{ secrets.USER_NAME }}
+          EMAIL: ${{ secrets.USER_EMAIL }}
+        run: make update-branch USER_NAME=$NAME USER_EMAIL=$EMAIL
